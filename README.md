@@ -3,7 +3,7 @@
 Custom Claude Code status line — model, git context, token usage, session time, token speed, and a [CodeNavi](https://www.codenavi.com) index badge, in one bar.
 
 ```
-Opus 4.7 | codenavi@main | 98.8k /200.0k ~ 49% | 51m:55s | 🟢 ✦ codenavi | 666.9 t/s
+Fable 5 | claude@main | 392.6k/1.0M ~ 39% | 51m:55s | 🟢 ✦ codenavi | 666.9 t/s
 ```
 
 ## Features
