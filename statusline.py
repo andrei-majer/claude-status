@@ -181,7 +181,9 @@ def main() -> None:
     except Exception:
         payload = {}
 
-    model_full = (payload.get("model") or {}).get("display_name") or "?"
+    model_obj = payload.get("model") or {}
+    model_full = model_obj.get("display_name") or "?"
+    model_id = (model_obj.get("id") or "").lower()
     model = model_full.split(" (", 1)[0].strip()
     cwd = payload.get("cwd") or (payload.get("workspace") or {}).get("current_dir") or ""
     transcript_path = payload.get("transcript_path")
@@ -233,7 +235,10 @@ def main() -> None:
 
     context_used = last_input + last_cache_r + last_cache_c
 
-    if "1m" in model_full.lower():
+    # The 1M-context marker can appear in the model ID ("claude-fable-5[1m]")
+    # or the display name ("Sonnet 4.5 (1m)") depending on the client version —
+    # check both, or a 1M session reads >100% against the default 200k window.
+    if "[1m]" in model_id or "1m" in model_full.lower():
         max_ctx = 1_000_000
     else:
         max_ctx = 200_000
@@ -243,7 +248,7 @@ def main() -> None:
     if first_ts:
         try:
             start = datetime.fromisoformat(first_ts.replace("Z", "+00:00"))
-            secs = int((datetime.now(timezone.utc) - start).total_seconds())
+            secs = max(0, int((datetime.now(timezone.utc) - start).total_seconds()))
             elapsed = fmt_dur(secs)
         except Exception:
             pass
@@ -268,7 +273,7 @@ def main() -> None:
         repo, branch = gi
         parts.append(f"{YELLOW}{repo}@{branch}{RESET}")
     ctx_color = RED if pct >= 50 else GREY
-    parts.append(f"{ctx_color}{fmt_k(context_used)} /{fmt_k(max_ctx)} ~ {pct:.0f}%{RESET}")
+    parts.append(f"{ctx_color}{fmt_k(context_used)}/{fmt_k(max_ctx)} ~ {pct:.0f}%{RESET}")
     if elapsed:
         parts.append(f"{ORANGE}{elapsed}{RESET}")
     cn_state, cn_name = codenavi_status(gi[0] if gi else None, cwd)
